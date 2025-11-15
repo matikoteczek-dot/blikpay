@@ -2,47 +2,24 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Kup Produkt - 2 zł</title>
+  <title>Stripe Checkout</title>
   <script src="https://js.stripe.com/v3/"></script>
-
-  <style>
-    body { font-family: Arial; text-align: center; padding-top: 80px; background: #f7f7f7; }
-    button {
-      background: #6772e5;
-      color: #fff;
-      border: none;
-      padding: 15px 30px;
-      font-size: 20px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover { background: #5469d4; }
-  </style>
 </head>
-
 <body>
-  <h1>Kup Produkt</h1>
-  <p>Cena: <strong>2 zł</strong></p>
-
-  <button id="checkout-button">Kup teraz</button>
+  <h1>Kup produkt</h1>
+  <button id="checkout-button">Kup</button>
 
   <script>
-    const stripe = Stripe("pk_live_51SSl6yEcDvXnqWOejPWylDHBATccixTQpJ31lDXjUovHQsejQtUbvijLlVZPlEAuYPrJYXinjP3vkX7sPqpFY5Cm00fLJNS1ES");
+    const stripe = Stripe('pk_live_51SSl6yEcDvXnqWOejPWylDHBATccixTQpJ31lDXjUovHQsejQtUbvijLlVZPlEAuYPrJYXinjP3vkX7sPqpFY5Cm00fLJNS1ES'); // Twój publiczny klucz Stripe
 
-    document.getElementById("checkout-button").addEventListener("click", async () => {
-      const response = await fetch("/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-      });
-
-      const data = await response.json();
-
-      if (data.id) {
-        stripe.redirectToCheckout({ sessionId: data.id });
-      } else {
-        alert("Błąd tworzenia płatności");
+    document.getElementById('checkout-button').addEventListener('click', async () => {
+      const res = await fetch('/create-checkout-session', { method: 'POST' });
+      const session = await res.json();
+      if(session.error){
+        alert(session.error);
+        return;
       }
+      stripe.redirectToCheckout({ sessionId: session.id });
     });
   </script>
 </body>

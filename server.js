@@ -1,36 +1,37 @@
-require('dotenv').config();
 const express = require('express');
+const app = express();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-const app = express();
-app.use(express.json());
 app.use(express.static('public'));
+app.use(express.json());
 
 app.post('/create-checkout-session', async (req, res) => {
   try {
+    const { price = 4900, name = 'Produkt' } = req.body;
+
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      payment_method_types: ['card'], // na start tylko 'card'
       mode: 'payment',
       line_items: [
         {
           price_data: {
             currency: 'pln',
-            product_data: { name: 'Produkt 1 zł' },
-            unit_amount: 200, // 2 zł = 200 groszy
+            product_data: { name },
+            unit_amount: price
           },
-          quantity: 1,
+          quantity: 1
         }
       ],
-      success_url: `http://localhost:4242/success.html`,
-      cancel_url: `http://localhost:4242/cancel.html`,
+      success_url: 'https://blik-pay.onrender.com',
+      cancel_url: 'https://blik-pay.onrender.com'
     });
 
     res.json({ id: session.id });
-
-  } catch (error) {
-    console.error("Błąd Stripe:", error);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Błąd tworzenia sesji na stronie', details: err.message });
   }
 });
 
-app.listen(4242, () => console.log("Serwer działa pod adresem: http://localhost:4242"));
+const PORT = process.env.PORT || 4242;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
